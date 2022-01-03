@@ -22,8 +22,11 @@ Delete, Deletes all current representations of the target resource
 given by the URL.
 Here is the issue: Use flask/python specifically for the data handling. Only use javascript for client-side stuff.
 loads() is used to convert the JSON String document into the Python dictionary.'''
+
+# Empty array for data storage
 arr = []
 
+# This function takes in data from html form to relay ticker data to website
 @app.route("/", methods=['GET', 'POST'])
 def home():
 	if request.method == "POST":
@@ -44,6 +47,7 @@ def home():
 	else:
 		return render_template("index.html")
 
+# Function to remove tickers from data as user requests
 @app.route("/delete", methods=['POST', 'GET'])
 def delete():
 	if request.method == 'POST':
