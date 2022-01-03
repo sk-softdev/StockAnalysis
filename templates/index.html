@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link rel="stylesheet" href="static/style.css"/>
+		<link rel="shortcut icon" href="#">
+		<title>Home Page</title>
+	</head>
+	<body style="background-color:black;">
+		<nav class="nav">
+		  <a class="nav-link active" style="position: absolute; top: 1%;left: 0%;" href="/">Home</a>
+		  <a class="nav-link" style="position: absolute; top: 1%;left: 5%;" href="/markets">Markets</a>
+		  <a class="nav-link" style="position: absolute; top: 1%;left: 10%;" href="/research">Research</a>
+		  <input type="text" placeholder="Search Ticker... Ex: $TSLA" style="position: absolute; top: 2%;left: 50%; transform: translateX(-50%); width: 500px">
+		</nav>
+		<div class="panel panel-default" style="height: 75%; max-height: 80%; position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%); color: white">
+    		<h1>Your Stocks</h1>
+  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+				<table class="table" id="tblBody">
+				  <thead>
+				    <tr>
+				      <th scope="col">Symbol</th>
+				      <th scope="col">Share Price</th>
+				      <th scope="col">Gain/Loss Percentage (24h)</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				    {% block content %}
+				    	{% if arr %}
+				    		{% for data in arr %}
+					  			<div>
+						  			<tr id="newTicker">
+										<td>{{data['ticker']}}</td>
+										<td>{{data['Stock Price']}}</td>
+										<td>{{data['Price Change']}}%</td>
+										<td>
+											<form action="{{url_for('delete')}}" method="post">
+												<input type="hidden" name="data" value="{{ data }}">
+												<button id="deleteButton" type="submit">Delete</button>
+											</form>
+										</td>
+									</tr>	
+					  			</div>
+					  			<script>
+					  				document.getElementById("newTicker").id = {{data['Ticker ID']}};
+					  				document.getElementById("deleteButton").id = {{data['Button ID']}};
+					  				document.getElementById({{data['Button ID']}}).onclick = function() {
+									    document.getElementById({{data['Ticker ID']}}).remove();
+									};
+					  			</script>
+				  			{% endfor %}
+			  			{% endif %}	
+			  		{% endblock content %}
+				  </tbody>
+				</table>
+				<button id="addButton" style="position: relative; left: 735px;"><img src="static/add_button.png" style="height: 50px; width: auto;"></button>
+				<form id="tckrEntry" action="{{url_for('home')}}" method="post" style="position: relative; left: 500px; display: none;">
+					<label for="ticker">Ticker:</label>
+					<input type="text" id="ticker" name="tckr" placeholder="ticker">
+					<button id="submitButton" type="submit">Add</button>
+				</form>
+  			</div>
+  			<br>
+  			<br>
+  			<br>
+  			<h1>Your Industries</h1>
+  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+				<table class="table">
+				  <thead>
+				    <tr>
+				      <th scope="col">Industry</th>
+				      <th scope="col">Percentage Change</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				    <tr>
+				      <td>NVDA</td>
+				      <td>Nvidia Corporation</td>
+				    </tr>
+				    <tr>
+				      <td>PYPL</td>
+				      <td>PayPal Holdings</td>
+				    </tr>
+				  </tbody>
+				</table>
+  			</div>
+  			<br>
+  			<h1>Your News</h1>	
+  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+				<table class="table">
+				  <thead>
+				    <tr>
+				      <th scope="col">Headline</th>
+				      <th scope="col">Publication</th>
+				      <th scope="col">Date</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				    <tr>
+				      <td>Mark</td>
+				      <td>Otto</td>
+				      <td>@mdo</td>
+				    </tr>
+				    <tr>
+				      <td>Jacob</td>
+				      <td>Thornton</td>
+				      <td>@fat</td>
+				    </tr>
+				    <tr>
+				      <td>Larry</td>
+				      <td>the Bird</td>
+				      <td>@twitter</td>
+				    </tr>
+				  </tbody>
+				</table>
+  			</div>
+		</div>
+		<script> 
+			document.getElementById('addButton').onclick = function() {
+		        document.getElementById('tckrEntry').style.display = "block";
+			};
+		</script>
+		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	</body>
+</html>
