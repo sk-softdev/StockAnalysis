@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, redirect
 from polygon import RESTClient
 import requests
 import time
@@ -29,30 +29,40 @@ arr = []
 # This function takes in data from html form to relay ticker data to website
 @app.route("/", methods=['GET', 'POST'])
 def home():
-	if request.method == "POST":
-		key = '#'
+	if request.method == 'POST':
+		key = 'u8ubgf5HAZmgWl1xWOlpkbQ0asXYgAr3'
 		ticker = request.form.get('tckr')
-		req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/1/day/2021-12-30/2021-12-30?adjusted=true&sort=asc&limit=120&apiKey=" + key)
+		req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/1/day/2022-01-07/2022-01-07?adjusted=true&sort=asc&limit=120&apiKey=" + key)
 		data = json.loads(req.content) #json.loads(s) takes a string, bytes, or byte array instance which contains the JSON document as a parameter(s).
+		reqTwo = requests.get("https://api.polygon.io/v1/meta/symbols/" + ticker + "/company?apiKey=" + key)
+		dataTwo = json.loads(reqTwo.content)
+		data.update({'Name':dataTwo['name']})
+		data.update({'logo':dataTwo['logo']})
 		for i in data:
 			if i == "results":
 				data.update({'Stock Price':data[i][0]['c']}) # data[i][0] = dictionary then add ['c'] to get specific key value
 				data.update({'Price Change':round(((data[i][0]['o'] - data[i][0]['c']) / data[i][0]['o']) * -100, 2)})
 				data.update({'Ticker ID': random.randint(100000,1000000)})
 				data.update({'Button ID': random.randint(100000,1000000)})
+				data.update({'Table Height': 50 + (len(arr) + 1) * 70}) # Updates table height dynamically after data is added for new stock
 				arr.append(data)
 				break
-				
-		return render_template("index.html", arr=arr)
-	else:
-		return render_template("index.html")
 
-# Function to remove tickers from data as user requests
-@app.route("/delete", methods=['POST', 'GET'])
-def delete():
-	if request.method == 'POST':
-		data = request.form.get('data')
-		arr.remove(data)
+	return render_template("index.html", arr=arr)
+
+@app.route("/delete/<string:tickers>")
+def delete(tickers):
+	deleteList = []
+	tickersList = tickers.split(",")
+	for i in range(len(tickersList)):
+		for j in range(len(arr)):
+			if tickersList[i] == arr[j]['ticker']:
+				deleteList.append(arr.index(arr[j]))
+
+	for k in range(len(deleteList)):
+		del arr[deleteList[k]]
+
+	return redirect("/")
 
 @app.route("/markets")
 def markets():

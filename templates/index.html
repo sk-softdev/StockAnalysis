@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
     	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-		<link rel="stylesheet" href="static/style.css"/>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
 		<link rel="shortcut icon" href="#">
 		<title>Home Page</title>
 	</head>
@@ -17,49 +17,75 @@
 		</nav>
 		<div class="panel panel-default" style="height: 75%; max-height: 80%; position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%); color: white">
     		<h1>Your Stocks</h1>
-  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+  			<div id="stockTbl" class="panel-body" style="background-color: gray; width: 800px; height: 50px; border-radius:10px;">
 				<table class="table" id="tblBody">
 				  <thead>
-				    <tr>
-				      <th scope="col">Symbol</th>
-				      <th scope="col">Share Price</th>
-				      <th scope="col">Gain/Loss Percentage (24h)</th>
-				    </tr>
-				  </thead>
-				  <tbody>
 				    {% block content %}
 				    	{% if arr %}
+				    		<tr>
+						      <th scope="col">Symbol</th>
+						      <th scope="col">Company Name</th>
+						      <th scope="col">Share Price</th>
+						      <th scope="col">Gain/Loss Percentage (24h)</th>
+						      <th scope="col">
+						      	<input value="Edit" id="editButton" type="submit"></input>
+						  	  </th>
+						    </tr>
+						  	</thead>
+						  	<tbody>
+							  	<script>var tickers = "";</script>
 				    		{% for data in arr %}
-					  			<div>
-						  			<tr id="newTicker">
-										<td>{{data['ticker']}}</td>
-										<td>{{data['Stock Price']}}</td>
-										<td>{{data['Price Change']}}%</td>
-										<td>
-											<form action="{{url_for('delete')}}" method="post">
-												<input type="hidden" name="data" value="{{ data }}">
-												<button id="deleteButton" type="submit">Delete</button>
-											</form>
-										</td>
-									</tr>	
-					  			</div>
+						  		<tr id="newTicker">
+						  			<td>
+							  			<div style="display: flex; justify-content: space-between; margin: auto;">
+											<p style="position: relative; left: 7px">{{data['ticker']}}</p>
+											<img src="{{data['logo']}}" style="width: 45px; height: 45px; position: relative; left: 10px; top: -2px;">
+										</div>
+									</td>
+									<td>{{data['Name']}}</td>
+									<td>{{data['Stock Price']}}</td>
+									{% if data['Price Change'] > 0 %}
+										<td style="color: green;">+{{data['Price Change']}}%</td>
+									{% else %}
+										<td style="color: red">{{data['Price Change']}}%</td>
+									{% endif %}
+									<td>
+										<input id="deleteButton" class="stockEdit" value="Delete" type="submit"></input>
+									</td>
+								</tr>	
 					  			<script>
-					  				document.getElementById("newTicker").id = {{data['Ticker ID']}};
+					  				document.getElementById("stockTbl").style.height = parseInt({{data['Table Height']}}) + "px";		
+						  			document.getElementById("newTicker").id = {{data['Ticker ID']}};	
 					  				document.getElementById("deleteButton").id = {{data['Button ID']}};
-					  				document.getElementById({{data['Button ID']}}).onclick = function() {
-									    document.getElementById({{data['Ticker ID']}}).remove();
-									};
+						  			document.getElementById('editButton').onclick = function() {
+										if (document.getElementById('editButton').value == "Edit") {
+											document.getElementById('editButton').value = "Finish Editing";
+											document.documentElement.style.setProperty('--visibility', 'block');
+										}
+										else {
+											document.getElementById('editButton').value = "Edit";
+											window.location.href = "/delete/" + tickers; // Updates data
+											tickers = "";
+											document.documentElement.style.setProperty('--visibility', 'none');
+										}
+									};	
+									document.getElementById({{data['Button ID']}}).onclick = function() {
+										document.getElementById({{data['Ticker ID']}}).remove(); // Removes JavaScript element
+										tickers = tickers + "{{data['ticker']}}" + ",";
+									};					
 					  			</script>
 				  			{% endfor %}
+				  		{% else %}
+				  			<p style="position: relative; top: 9px; left: 15px;">You're currently tracking no stocks. Press the plus button to make additions.</p>
 			  			{% endif %}	
 			  		{% endblock content %}
 				  </tbody>
 				</table>
-				<button id="addButton" style="position: relative; left: 735px;"><img src="static/add_button.png" style="height: 50px; width: auto;"></button>
+				<button id="addButton" style="position: relative; left: 735px; top: -14px;"><img src="static/add_button.png" style="height: 40px; width: auto;"></button>
 				<form id="tckrEntry" action="{{url_for('home')}}" method="post" style="position: relative; left: 500px; display: none;">
 					<label for="ticker">Ticker:</label>
 					<input type="text" id="ticker" name="tckr" placeholder="ticker">
-					<button id="submitButton" type="submit">Add</button>
+					<button name="action" value="Add" id="submitButton" type="submit">Add</button>
 				</form>
   			</div>
   			<br>

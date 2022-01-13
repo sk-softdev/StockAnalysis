@@ -1,5 +1,9 @@
-p {
-	color: blue;
+:root {
+    --visibility: none;
+}
+
+.stockEdit {
+    display: var(--visibility);
 }
 
 .panel-default > .panel-heading-custom {
