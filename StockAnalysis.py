@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect
 from polygon import RESTClient
-import requests, time, json, random, copy
+import requests, time, json, random
 
 app = Flask(__name__)
 
@@ -26,7 +26,7 @@ arr = []
 @app.route("/", methods=['GET', 'POST'])
 def home():
 	if request.method == 'POST':
-		key = 'u8ubgf5HAZmgWl1xWOlpkbQ0asXYgAr3'
+		key = '#'
 		ticker = request.form.get('tckr')
 		req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/1/day/2022-01-07/2022-01-07?adjusted=true&sort=asc&limit=120&apiKey=" + key)
 		data = json.loads(req.content) #json.loads(s) takes a string, bytes, or byte array instance which contains the JSON document as a parameter(s).
@@ -50,13 +50,17 @@ def home():
 # This function takes in string from url (ex: /delete/AAPL,TSLA,NVDA) then splits that into a list and deletes the matching array indices in data (arr)
 @app.route("/delete/<string:tickers>")
 def delete(tickers):
-	arrCopy = copy.copy(arr) # Copy of arr to reference as to avoid out of range issues when indices are deleted
+	global arr # globally declaring arr 
 	tickersList = tickers.split(",")
+	deleteList = []
 	# Nested loop sorts through tickers submitted via tickersList and deletes them if they match previously stored data (arr)
-	for i in range(len(arrCopy)):
+	for i in range(len(arr)):
 		for j in range(len(tickersList)):
-			if arrCopy[i]['ticker'] == tickersList[j]:
-				del(arr[i])
+			if arr[i]['ticker'] == tickersList[j]:
+				deleteList.append(arr.index(arr[i]))
+
+	for k in range(len(deleteList)):
+		del arr[k]
 
 	return redirect("/")
 
