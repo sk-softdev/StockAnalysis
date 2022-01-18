@@ -4,21 +4,6 @@ import requests, time, json, random
 
 app = Flask(__name__)
 
-'''
-Request, Purpose
-Get, The most common method. A GET Message is send, and the 
-server returns data
-Post, Used to send HTML form data to the server. The data received
-by the Post method is not cached by the server.
-Head, Same as GET method, but no response body.
-Put, Replace all current representations of the target resource with
-uploaded content.
-Delete, Deletes all current representations of the target resource
-given by the URL.
-Here is the issue: Use flask/python specifically for the data handling. Only use javascript for client-side stuff.
-loads() is used to convert the JSON String document into the Python dictionary.
-'''
-
 # Empty array for data storage
 arr = []
 
