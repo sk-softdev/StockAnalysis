@@ -37,14 +37,10 @@ def home():
 		data.update({'Ticker ID': random.randint(100000,1000000)})
 		data.update({'Button ID': random.randint(100000,1000000)})
 		data.update({'Table Height': 50 + (len(arr) + 1) * 70}) # Updates table height dynamically after data is added for new stock
-
-		for i in data:
-			if i == "results":
-				data.update({'Stock Price':data[i][0]['c']}) # data[i][0] = dictionary then add index (ex:['c'] or closing share price) to get specific key value
-				data.update({'Price Change':round(((data[i][0]['o'] - data[i][0]['c']) / data[i][0]['o']) * -100, 2)}) # Opening share price - closing share price / opening share price * -100
-				arr.append(data)
-				break
-
+		data.update({'Stock Price':data['results'][0]['c']}) # data[i][0] = dictionary then add index (ex:['c'] or closing share price) to get specific key value
+		data.update({'Price Change':round(((data['results'][0]['o'] - data['results'][0]['c']) / data['results'][0]['o']) * -100, 2)}) # Opening share price - closing share price / opening share price * -100
+		arr.append(data)
+		
 	return render_template("index.html", arr=arr)
 
 # This function takes in string from url (ex: /delete/AAPL,TSLA,NVDA) then splits that into a list and deletes the matching array indices in data (arr)
@@ -52,15 +48,17 @@ def home():
 def delete(tickers):
 	global arr # globally declaring arr 
 	tickersList = tickers.split(",")
-	deleteList = []
 	# Nested loop sorts through tickers submitted via tickersList and deletes them if they match previously stored data (arr)
-	for i in range(len(arr)):
+	# Iterates backwards to avoid out of index errors when removing
+	for i in range(len(arr) - 1, -1, -1):
 		for j in range(len(tickersList)):
-			if arr[i]['ticker'] == tickersList[j]:
-				deleteList.append(arr.index(arr[i]))
+			if arr[i]['ticker'] == tickersList[j]:   
+				del arr[i]     
+				break # break to avoid out of index error for the rest of j's after i is removed
 
-	for k in range(len(deleteList)):
-		del arr[k]
+	# Updates table height parameter after deletion
+	for x in arr:
+		x['Table Height'] = 50 + len(arr) * 70
 
 	return redirect("/")
 
