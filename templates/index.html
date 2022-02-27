@@ -16,6 +16,35 @@
 		  <input type="text" placeholder="Search Ticker... Ex: $TSLA" style="position: absolute; top: 2%;left: 50%; transform: translateX(-50%); width: 500px">
 		</nav>
 		<div class="panel panel-default" style="height: 75%; max-height: 80%; position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%); color: white">
+			<h1>Stocks Overview</h1>
+  			<div class="panel-body" style="background-color: gray; width: 800px; height: 300px; border-radius:10px;">
+				<table class="table">
+				  <thead>
+				    <tr>
+				      <th scope="col">Top Gainers</th>
+				      <th scope="col">Top Losers</th>
+				      <th scope="col">Most Traded (by volume)</th>
+				      <th scope="col">
+				      	<input value="Filter" id="filterButton" type="submit"></input>
+				      </th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				    {% block contentTwo %} 
+				    	{% if changeArr %}
+				    		{% for x in range(0, 5) %}
+							  	<tr>
+							  		<td style="color: darkgreen;">{{changeArr[length - x][0]}}, {{changeArr[length - x][1]}}%</td>
+							  		<td style="color: darkred;">{{changeArr[x][0]}}, {{changeArr[x][1]}}%</td>
+							  		<td style="color: gold;">{{volumeArr[lengthVolume - x][0]}}, {{volumeArr[lengthVolume - x][1]}}</td>
+								</tr>	
+							{% endfor %}
+			  			{% endif %}	
+			  		{% endblock contentTwo %}
+				  </tbody>
+				</table>
+  			</div>
+  			<br>
     		<h1>Your Stocks</h1>
   			<div id="stockTbl" class="panel-body" style="background-color: gray; width: 800px; height: 50px; border-radius:10px;">
 				<table class="table" id="tblBody">
@@ -45,9 +74,9 @@
 									<td>{{data['Name']}}</td>
 									<td>{{data['Stock Price']}}</td>
 									{% if data['Price Change'] > 0 %}
-										<td style="color: green;">+{{data['Price Change']}}%</td>
+										<td style="color: darkgreen;">+{{data['Price Change']}}%</td>
 									{% else %}
-										<td style="color: red">{{data['Price Change']}}%</td>
+										<td style="color: darkred">{{data['Price Change']}}%</td>
 									{% endif %}
 									<td>
 										<input id="deleteButton" class="stockEdit" value="Delete" type="submit"></input>
@@ -91,54 +120,33 @@
   			<br>
   			<br>
   			<br>
-  			<h1>Your Industries</h1>
-  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
-				<table class="table">
-				  <thead>
-				    <tr>
-				      <th scope="col">Industry</th>
-				      <th scope="col">Percentage Change</th>
-				    </tr>
-				  </thead>
-				  <tbody>
-				    <tr>
-				      <td>Metals</td>
-				      <td>+1.2%</td>
-				    </tr>
-				    <tr>
-				      <td>Energy</td>
-				      <td>-2.3%</td>
-				    </tr>
-				  </tbody>
-				</table>
-  			</div>
-  			<br>
   			<h1>Your News</h1>	
-  			<div class="panel-body" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+  			<div class="panel-body" id="newsTbl" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
 				<table class="table">
 				  <thead>
-				    <tr>
-				      <th scope="col">Headline</th>
-				      <th scope="col">Publication</th>
-				      <th scope="col">Date</th>
-				    </tr>
-				  </thead>
-				  <tbody>
-				    <tr>
-				      <td>Why Nvidia Stock Started the New Year Strong</td>
-				      <td>The Motley Fool</td>
-				      <td>1-3-2022</td>
-				    </tr>
-				    <tr>
-				      <td>Apple: Quality Name To Own; AR/VR To Drive Growth</td>
-				      <td>Seeking Alpha</td>
-				      <td>1-3-2022</td>
-				    </tr>
-				    <tr>
-				      <td>What Amazon's expansion means for NW Arkansas</td>
-				      <td>Axios</td>
-				      <td>1-3-2022</td>
-				    </tr>
+				  	{% block contentThree %}
+				    	{% if arr %}
+						    <tr>
+						      <th scope="col">Headline</th>
+						      <th scope="col">Publication</th>
+						      <th scope="col">Date</th>
+						    </tr>
+						  </thead>
+						  <tbody>
+				    		{% for data in arr %}
+						  		<tr>
+						  			<td>{{data['News']['results'][1]['title']}}</td>
+									<td>{{data['News']['results'][0]['publisher']['name']}}</td>
+									<td>{{data['News']['results'][3]['published_utc']}}</td>
+								</tr>	
+				  			{% endfor %}
+				  		{% else %}
+				  			<p style="position: relative; top: 9px; left: 15px;">No stocks to give news on. Please add stocks above.</p>
+			  			{% endif %}	
+			  			<script>
+					  		document.getElementById("newsTbl").style.height = document.getElementById("stockTbl").style.height			
+					  	</script>
+			  		{% endblock contentThree %}
 				  </tbody>
 				</table>
   			</div>
