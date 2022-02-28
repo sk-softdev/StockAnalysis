@@ -25,18 +25,38 @@
 				      <th scope="col">Top Losers</th>
 				      <th scope="col">Most Traded (by volume)</th>
 				      <th scope="col">
-				      	<input value="Filter" id="filterButton" type="submit"></input>
+				      	<div style="position: relative; top: -25px; max-width:600px; height: 0px;margin:0 auto; padding: 10px">
+					      	<div class="container-fluid">
+						      	<div class="dropdown">
+							      	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+							      		Filter <div class="caret"></div>
+							      	</button>
+							      	<ul class="dropdown-menu">
+							      		<li><a href="/filter/9">All</a></li>
+							      		<li><a href="/filter/8">>100 million shares traded</a></li>
+							      		<li><a href="/filter/7"><100 million shares traded</a></li>
+							      		<li><a href="/filter/6"><50 million shares traded</a></li>
+							      		<li><a href="/filter/5"><25 million shares traded</a></li>
+							      		<li><a href="/filter/4"><10 million shares traded</a></li>
+							      		<li><a href="/filter/3"><5 million shares traded</a></li>
+							      		<li><a href="/filter/2"><1 million shares traded</a></li>
+							      		<li><a href="/filter/1"><500k shares traded</a></li>
+							      		<li><a href="/filter/0"><100k shares traded</a></li>
+							      	</ul>
+						      	</div>
+					      	</div>
+				      	</div>
 				      </th>
 				    </tr>
 				  </thead>
 				  <tbody>
 				    {% block contentTwo %} 
-				    	{% if changeArr %}
+				    	{% if statsArr %}
 				    		{% for x in range(0, 5) %}
 							  	<tr>
-							  		<td style="color: darkgreen;">{{changeArr[length - x][0]}}, {{changeArr[length - x][1]}}%</td>
-							  		<td style="color: darkred;">{{changeArr[x][0]}}, {{changeArr[x][1]}}%</td>
-							  		<td style="color: gold;">{{volumeArr[lengthVolume - x][0]}}, {{volumeArr[lengthVolume - x][1]}}</td>
+							  		<td style="color: darkgreen;">{{statsArr[group]['change'][length - x][0]}}, {{statsArr[group]['change'][length - x][1]}}%</td>
+							  		<td style="color: darkred;">{{statsArr[group]['change'][x][0]}}, {{statsArr[group]['change'][x][1]}}%</td>
+							  		<td style="color: gold;">{{statsArr[group]['volume'][length - x][0]}}, {{statsArr[group]['volume'][length - x][1]}}</td>
 								</tr>	
 							{% endfor %}
 			  			{% endif %}	
@@ -50,7 +70,7 @@
 				<table class="table" id="tblBody">
 				  <thead>
 				    {% block content %}
-				    	{% if arr %}
+				    	{% if dataArr %}
 				    		<tr>
 						      <th scope="col">Symbol</th>
 						      <th scope="col">Company Name</th>
@@ -63,7 +83,7 @@
 						  	</thead>
 						  	<tbody>
 							  	<script>var tickers = "";</script>
-				    		{% for data in arr %}
+				    		{% for data in dataArr %}
 						  		<tr id="newTicker">
 						  			<td>
 							  			<div style="display: flex; justify-content: space-between; margin: auto;">
@@ -125,7 +145,7 @@
 				<table class="table">
 				  <thead>
 				  	{% block contentThree %}
-				    	{% if arr %}
+				    	{% if dataArr %}
 						    <tr>
 						      <th scope="col">Headline</th>
 						      <th scope="col">Publication</th>
@@ -133,7 +153,7 @@
 						    </tr>
 						  </thead>
 						  <tbody>
-				    		{% for data in arr %}
+				    		{% for data in dataArr %}
 						  		<tr>
 						  			<td>{{data['News']['results'][1]['title']}}</td>
 									<td>{{data['News']['results'][0]['publisher']['name']}}</td>
