@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Stockie | View All Users{% endblock %}
+{% block content %}
+	{% for row in rows %}
+		<p>Username:{{row.username}} Stocks:{{row.stocks}}</p>
+	{% endfor %}
+{% endblock %}

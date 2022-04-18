@@ -1,144 +1,238 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Blueprint, Flask, render_template, request, url_for, redirect, session, flash, g
 from polygon import RESTClient
 from datetime import datetime, date, timedelta
+from StockAnalysis.db import get_db
 import requests, time, json, random
 
-app = Flask(__name__)
-
-# Empty array for data storage
-dataArr = []
-statsArr = []
-for x in range(10):
-	statsArr.append({'change':[], 'volume':[]})
-
-lengthVolume = 0
-length = 0
-today = 0
-group = 9
-dataCreated = False
+bp = Blueprint("StockAnalysis", __name__)
 
 # This function takes in ticker to be added from html form to relay relevant data (appended to arr) to website
-@app.route("/", methods=['GET', 'POST'])
+# The g name stands for “global”, but that is referring to the data being global within a context. 
+# The data on g is lost after the context ends, and it is not an appropriate place to store data between requests. 
+# Use the session or a database to store data across requests.
+
+@bp.route("/", methods=['GET', 'POST'])
 def home():
-	global today, dataCreated, lengthVolume, length
+	marketStatus = "closed"
+	currentYear = str(date.today().year)
+	holidays = [currentYear + "-01-17", currentYear + "-02-21", currentYear + "-04-15", currentYear + "-05-30", currentYear + "-06-20", currentYear + "-07-04", currentYear + "-09-05", currentYear + "-11-24", currentYear + "-12-26"]
+	if 'dataCreated' not in session:
+		session['dataCreated'] = False
+		session['userDataCreated'] = False
+		session['tableHeight'] = 50
+		session['newsHeight'] = 50
+		session['userFilter'] = ""
+    
+	dataCreated = session.get("dataCreated")
+	userDataCreated = session.get("userDataCreated")
+	tableHeight = session.get("tableHeight")
+	newsHeight = session.get("newsHeight")
+	userFilter = session.get("userFilter")
+
 	if datetime.today().weekday() < 5:
 		today = date.today()
 	else:
 		today = date.today() - timedelta(days = datetime.today().weekday() - 4)
 
+	if str(today) in holidays:
+		today = today - timedelta(days = 1)
+
 	if request.method == 'POST':
-		key = '#'
+		duplicate = False
+		stored = False
 		ticker = request.form.get('tckr')
-		req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/range/1/day/" + str(today) + "/" + str(today) + "?adjusted=true&sort=asc&limit=120&apiKey=" + key)
-		data = json.loads(req.content) #json.loads(s) takes a string, bytes, or byte array instance which contains the JSON document as a parameter(s).
-		req = requests.get("https://api.polygon.io/v1/meta/symbols/" + ticker + "/company?apiKey=" + key)
-		dataTwo = json.loads(req.content)
-		data.update({'Name':dataTwo['name']})
-		data.update({'logo':dataTwo['logo']})
-		data.update({'Ticker ID': random.randint(100000,1000000)})
-		data.update({'Button ID': random.randint(100000,1000000)})
-		data.update({'Table Height': 50 + (len(dataArr) + 1) * 70}) # Updates table height dynamically after data is added for new stock
-		req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/prev?adjusted=true&apiKey=" + key)
-		dataTwo = json.loads(req.content)
-		data.update({'Stock Price':dataTwo['results'][0]['c']}) # data[i][0] = dictionary then add index (ex:['c'] or closing share price) to get specific key value
-		data.update({'Price Change':round(((dataTwo['results'][0]['o'] - dataTwo['results'][0]['c']) / dataTwo['results'][0]['o']) * -100, 2)}) # Opening share price - closing share price / opening share price * -100
-		req = requests.get("https://api.polygon.io/v2/reference/news?ticker=" + ticker + "&apiKey=" + key)
-		dataTwo = json.loads(req.content)
-		data.update({'News':dataTwo})
-		dataArr.append(data)
+		db = get_db()
+		userStats = db.execute("SELECT * FROM userStats").fetchall()
+		if g.user['stocks'] is not None:
+			tickers = g.user['stocks']
+			tickersList = tickers.split(",")
+			for x in tickersList:
+				if x == ticker:
+					duplicate = True
+					break
 
-	if dataCreated == False:
-		key = '#'
-		req = requests.get("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/" + str(today) + "?adjusted=true&apiKey=" + key)
-		data = json.loads(req.content)
-		length = 0
-		# defines biggest losers and biggest winners across the entire stock market idea: do biggest gainers and losers by market cap and shares traded on the day
-		# 8 categories: All, less than 100 mil, less than 50 mil, less than 25 mil, less than 10 mil, less than 5 mil, less than 1 mil, less than 500k
-		# one array with two dictionaries that each have an array inside them that have yet another array inside them
-		# statsArr = [change: [dd,dd],[dd,dd],[dd,dd], volume: [cc,cc],[cc,cc][cc,cc]]
-		# Do analysis across a week of the volumes??
-		for x in data['results']:
-			if "." not in x['T']:
-				if x['v'] >= 100000000:
-					vol = 8
-				elif x['v'] < 100000000 and x['v'] >= 50000000:
-					vol = 7
-				elif x['v'] < 50000000 and x['v'] >= 25000000:
-					vol = 6
-				elif x['v'] < 25000000 and x['v'] >= 10000000:
-					vol = 5
-				elif x['v'] < 10000000 and x['v'] >= 5000000:
-					vol = 4
-				elif x['v'] < 5000000 and x['v'] >= 1000000:
-					vol = 3
-				elif x['v'] < 1000000 and x['v'] >= 500000:
-					vol = 2
-				elif x['v'] < 500000 and x['v'] >= 100000:
-					vol = 1 
-				else:
-					vol = 0
-				change = [x['T'], round(((x['c'] - x['o']) / x['o']) * 100, 2)] # array with stock name then change in price
-				volume = [x['T'], x['v']]
-				statsArr[vol]['change'].append(change)
-				statsArr[vol]['volume'].append(volume)
-				statsArr[9]['change'].append(change)
-				statsArr[9]['volume'].append(volume)
-		for x in statsArr:
-			sort(x['change'])
-			sort(x['volume'])
-		length = len(statsArr[group]['change']) - 1
+		if (duplicate == False):
+			addStock(ticker, today, stored)
+			tableHeight = session.get("tableHeight")
+			newsHeight = session.get("newsHeight")
+		else:
+			flash("You're already tracking " + ticker + ".", "info")
+
+	# initial data creation if stored data exists, shift + tab to go left
+	if g.user is not None and userDataCreated == False or marketStatus == open:
+		if g.user['stocks'] is not None:
+			tickers = g.user['stocks']
+			tickersList = tickers.split(",")
+			db = get_db()
+			db.execute("DELETE FROM userStats")
+			db.commit()
+			for ticker in tickersList:
+				stored = True
+				addStock(ticker, today, stored)
+				tableHeight = session.get("tableHeight")
+				newsHeight = session.get("newsHeight")
+				time.sleep(10)
+		session['userDataCreated'] = True
+
+	if dataCreated == False or marketStatus == "open":
+		dataCreate(today)
 		dataCreated = True
+		session['dataCreated'] = True
 
-	return render_template("index.html", dataArr=dataArr, statsArr=statsArr, length=length, group=group)
+	db = get_db()
+	marketWinners = db.execute("SELECT * FROM marketStats " + userFilter + " ORDER BY change DESC LIMIT 10").fetchall()
+	marketLosers = db.execute("SELECT * FROM marketStats " + userFilter + " ORDER BY change LIMIT 10").fetchall()
+	marketPopular = db.execute("SELECT * FROM marketStats " + userFilter + " ORDER BY volume DESC LIMIT 10").fetchall()
+	userStats = db.execute("SELECT * FROM userStats").fetchall()
+	return render_template("index.html", dataCreated=dataCreated, userDataCreated=userDataCreated, tableHeight=tableHeight, newsHeight=newsHeight, marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats)
 
-def sort(arr):
-	i = 0 
-	while i < len(arr):
-		j = i + 1
-		while j < len(arr):
-			if arr[i][1] > arr[j][1]:
-				x = arr[i]
-				arr[i] = arr[j]
-				arr[j] = x
-			j = j + 1
-		i = i + 1
+def addStock(ticker, today, stored):
+	key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
+	tableHeight = session.get("tableHeight")
+	newsHeight = session.get("newsHeight")
+	req = requests.get("https://api.polygon.io/v1/meta/symbols/" + ticker + "/company?apiKey=" + key)
+	data = json.loads(req.content)
+	name = data['name']
+	logo = data['logo']
+	tickerID = random.randint(100000,1000000)
+	buttonID = random.randint(100000,1000000)
+	session['tableHeight'] = tableHeight + 75
+	session['newsHeight'] = newsHeight + 75
+	req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/prev?adjusted=true&apiKey=" + key)
+	data = json.loads(req.content)
+	stockPrice = data['results'][0]['c'] # data[i][0] = dictionary then add index (ex:['c'] or closing share price) to get specific key value
+	priceChange = round(((data['results'][0]['o'] - data['results'][0]['c']) / data['results'][0]['o']) * -100, 2) # Opening share price - closing share price / opening share price * -100
+	volume = data['results'][0]['v']
+	req = requests.get("https://api.polygon.io/v2/reference/news?ticker=" + ticker + "&apiKey=" + key)
+	data = json.loads(req.content)
+	newsTitle = data['results'][1]['title']
+	newsPublisher = data['results'][0]['publisher']['name']
+	newsDate = data['results'][3]['published_utc']
+	db = get_db()
+	db.execute(
+    	"INSERT INTO userStats (name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    	(name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate),
+	)
+	db.commit()
 
-	return 
+	if stored == False:
+		user_id = session.get("user_id")   
+		if (g.user['stocks'] is None): # initial 
+			db.execute("UPDATE user SET stocks = ? WHERE id = ?", (ticker, g.user['id']))
+		else: # update after initial creation
+			db.execute("UPDATE user SET stocks = ? WHERE id = ?", (g.user['stocks'] + "," + ticker, g.user['id']))
+		db.commit()
+
+	return
+
+def dataCreate(today):
+	db = get_db()
+	#db.execute("DELETE FROM marketStats")
+	#db.commit()
+	key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
+	req = requests.get("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/" + str(today) + "?adjusted=true&apiKey=" + key)
+	data = json.loads(req.content)
+	# defines biggest losers and biggest winners across the entire stock market idea: do biggest gainers and losers by market cap and shares traded on the day
+	# 8 categories: All, less than 100 mil, less than 50 mil, less than 25 mil, less than 10 mil, less than 5 mil, less than 1 mil, less than 500k
+	# Do analysis across a week of the volumes??
+	for x in data['results']:
+		if "." not in x['T']:
+			db.execute(
+                "INSERT INTO marketStats (ticker, volume, change) VALUES (?, ?, ?)",
+                (x['T'], x['v'], round(((x['c'] - x['o']) / x['o']) * 100, 2)),
+            )
+			db.commit()			
+	return
+
+@bp.route("/view")
+def view():
+	db = get_db()
+
+	rows = db.execute("SELECT * FROM user").fetchall()
+
+	return render_template("view.html", rows=rows)
 
 # This function filters Stocks Overview based on user's desired shares traded limit to view the top gainers and losers of less traded stocks
-@app.route("/filter/<int:sharesTraded>")
+@bp.route("/filter/<int:sharesTraded>")
 def filter(sharesTraded):
-	global group, length
-	group = sharesTraded
-	length = len(statsArr[group]['change']) - 1
+	if sharesTraded == 8:
+		session['userFilter'] = ""
+	elif sharesTraded == 7:
+		session['userFilter'] = "WHERE volume between 50000000 and 100000000"
+	elif sharesTraded == 6:
+		session['userFilter'] = "WHERE volume between 25000000 and 50000000"
+	elif sharesTraded == 5:
+		session['userFilter'] = "WHERE volume between 10000000 and 25000000"
+	elif sharesTraded == 4:
+		session['userFilter'] = "WHERE volume between 5000000 and 10000000"
+	elif sharesTraded == 3:
+		session['userFilter'] = "WHERE volume between 1000000 and 5000000"
+	elif sharesTraded == 2:
+		session['userFilter'] = "WHERE volume between 500000 and 1000000"
+	elif sharesTraded == 1:
+		session['userFilter'] = "WHERE volume between 100000 and 500000"
+	elif sharesTraded == 0:
+		session['userFilter'] = "WHERE volume between 0 and 100000"
+
 	return redirect("/")
 
 # This function takes in string from url (ex: /delete/AAPL,TSLA,NVDA) then splits that into a list and deletes the matching array indices in data (dataArr)
-@app.route("/delete/<string:tickers>")
+@bp.route("/delete/<string:tickers>")
 def delete(tickers):
-	global dataArr # globally declaring arr 
+	tableHeight = session.get("tableHeight")
 	tickersList = tickers.split(",")
+
 	# Nested loop sorts through tickers submitted via tickersList and deletes them if they match previously stored data (dataArr)
 	# Iterates backwards to avoid out of index errors when removing
-	for i in range(len(dataArr) - 1, -1, -1):
-		for j in range(len(tickersList)):
-			if dataArr[i]['ticker'] == tickersList[j]:   
-				del dataArr[i]     
-				break # break to avoid out of index error for the rest of j's after i is removed
 
-	# Updates table height parameter in the event that user removes a stock
-	for x in dataArr:
-		x['Table Height'] = 50 + len(dataArr) * 70
+	db = get_db()
+	
+	for y in tickersList:
+		session['tableHeight'] = tableHeight - 75     
+		db.execute("DELETE FROM userStats WHERE ticker = ?", (y,))
+		db.commit()
+
+	userTickers = g.user['stocks'] # stores all users stocks from database then splits them into list below
+	userTickers = userTickers.split(",")
+
+	for i in range(len(userTickers) - 1, -1, -1):
+		for j in range(len(tickersList)):
+			if userTickers[i] == tickersList[j]:
+				del userTickers[i]   
+				break # break to avoid out of index error for the rest of j's after i is removed	
+
+	dataString = ""
+	for x in userTickers:
+		if x == userTickers[0]:
+			dataString = x
+		else:
+			dataString = dataString + "," + x
+
+	db = get_db()
+	db.execute("UPDATE user SET stocks = ? WHERE id = ?", (dataString, g.user['id']))
+	db.commit()  
 
 	return redirect("/")
 
-@app.route("/markets")
-def markets():
-	return render_template("markets.html")
-
-@app.route("/research")
+@bp.route("/research", methods=['GET', 'POST'])
 def research():
-	return render_template("research.html")
+	if request.method == 'POST':
+		ticker = request.form.get('tckr')
+		req = requests.get("https://api.polygon.io/vX/reference/financials?ticker=AAPL&apiKey=XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW")
+		data = json.loads(req.content)
+		db = get_db()
+		db.execute("DELETE FROM researchStats")
+		db.commit()
+		researchData = data['results'][0]['financials']['comprehensive_income']
+		queryArray = ['current_assets', 'Costs And Expenses', 'gross_profit', 'revenues', 'assets']
+		for x in queryArray:
+			x = researchData[x]
+			db.execute(
+			    "INSERT INTO researchStats (label, value) VALUES (?, ?)",
+			    (x['label'], x['value']),
+			)
+			db.commit()
+		researchStats = db.execute("SELECT * FROM researchStats").fetchall()
+		return render_template("research.html", researchStats=researchStats)
 
-if __name__ == "__main__":
-	app.run(debug=True)
+	return render_template("research.html")
