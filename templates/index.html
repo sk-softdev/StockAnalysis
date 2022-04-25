@@ -52,7 +52,7 @@
 		<div id="stockTbl" class="panel-body" style="background-color: gray; width: 800px; height: 50px; border-radius:10px;">
 		<table class="table" id="tblBody">
 		  <thead>
-	    	{% if userDataCreated %}
+	    	{% if userDataCreated and noStocksAfterCreation == False %}
 	    		<tr>
 			      <th scope="col">Symbol</th>
 			      <th scope="col">Company Name</th>
@@ -127,7 +127,7 @@
 		<div class="panel-body" id="newsTbl" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
 		<table class="table">
 		  <thead>
-	    	{% if userDataCreated %}
+	    	{% if userDataCreated and noStocksAfterCreation == False %}
 			    <tr>
 			      <th scope="col">Headline</th>
 			      <th scope="col">Publication</th>

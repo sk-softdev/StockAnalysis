@@ -22,12 +22,14 @@ def home():
 		session['tableHeight'] = 50
 		session['newsHeight'] = 50
 		session['userFilter'] = ""
+		session['noStocksAfterCreation'] = False
     
 	dataCreated = session.get("dataCreated")
 	userDataCreated = session.get("userDataCreated")
 	tableHeight = session.get("tableHeight")
 	newsHeight = session.get("newsHeight")
 	userFilter = session.get("userFilter")
+	noStocksAfterCreation = session.get("noStocksAfterCreation")
 
 	if datetime.today().weekday() < 5:
 		today = date.today()
@@ -84,9 +86,10 @@ def home():
 	marketLosers = db.execute("SELECT * FROM marketStats " + userFilter + " ORDER BY change LIMIT 10").fetchall()
 	marketPopular = db.execute("SELECT * FROM marketStats " + userFilter + " ORDER BY volume DESC LIMIT 10").fetchall()
 	userStats = db.execute("SELECT * FROM userStats").fetchall()
-	return render_template("index.html", dataCreated=dataCreated, userDataCreated=userDataCreated, tableHeight=tableHeight, newsHeight=newsHeight, marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats)
+	return render_template("index.html", dataCreated=dataCreated, userDataCreated=userDataCreated, tableHeight=tableHeight, newsHeight=newsHeight, marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats, noStocksAfterCreation=noStocksAfterCreation)
 
 def addStock(ticker, today, stored):
+	session['noStocksAfterCreation'] = False
 	key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
 	tableHeight = session.get("tableHeight")
 	newsHeight = session.get("newsHeight")
@@ -180,6 +183,7 @@ def filter(sharesTraded):
 @bp.route("/delete/<string:tickers>")
 def delete(tickers):
 	tableHeight = session.get("tableHeight")
+	newsHeight = session.get("newsHeight")
 	tickersList = tickers.split(",")
 
 	# Nested loop sorts through tickers submitted via tickersList and deletes them if they match previously stored data (dataArr)
@@ -188,7 +192,8 @@ def delete(tickers):
 	db = get_db()
 	
 	for y in tickersList:
-		session['tableHeight'] = tableHeight - 75     
+		session['tableHeight'] = tableHeight - 75  
+		session['newsHeight'] = newsHeight - 75   
 		db.execute("DELETE FROM userStats WHERE ticker = ?", (y,))
 		db.commit()
 
@@ -208,6 +213,9 @@ def delete(tickers):
 		else:
 			dataString = dataString + "," + x
 
+	if dataString == "":
+		session['noStocksAfterCreation'] = True
+
 	db = get_db()
 	db.execute("UPDATE user SET stocks = ? WHERE id = ?", (dataString, g.user['id']))
 	db.commit()  
@@ -218,13 +226,13 @@ def delete(tickers):
 def research():
 	if request.method == 'POST':
 		ticker = request.form.get('tckr')
-		req = requests.get("https://api.polygon.io/vX/reference/financials?ticker=AAPL&apiKey=XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW")
+		req = requests.get("https://api.polygon.io/vX/reference/financials?ticker=" + ticker + "&apiKey=XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW")
 		data = json.loads(req.content)
 		db = get_db()
 		db.execute("DELETE FROM researchStats")
 		db.commit()
-		researchData = data['results'][0]['financials']['comprehensive_income']
-		queryArray = ['current_assets', 'Costs And Expenses', 'gross_profit', 'revenues', 'assets']
+		researchData = data['results'][0]['financials']['balance_sheet']
+		queryArray = ['current_assets']
 		for x in queryArray:
 			x = researchData[x]
 			db.execute(
