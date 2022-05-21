@@ -1,16 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Stockie | Research Page{% endblock %}
 {% block content %}
-	<form id="tckrEntry" action="{{url_for('StockAnalysis.research')}}" method="post" style="position: relative; left: 500px;">
-		<label for="ticker">Ticker:</label>
-		<input type="text" id="ticker" name="tckr" placeholder="ticker">
+	<form id="tckrEntry" action="{{url_for('StockAnalysis.research')}}" method="post" style="position: relative; top: -25px; left: 0px;">
+		<label for="ticker">Pick Ticker to research:</label>
+		<input type="text" id="ticker" name="tckr" placeholder="Ticker">
 		<button name="action" value="Add" id="submitButton" type="submit">Add</button>
 	</form>
 	{% if researchStats %}
+	<div style="background-color: gray; width: 800px; height: 550px; border-radius:10px;">
+		<h1>{{ticker}} Financials</h1><br>
 		{% for x in researchStats %}
-			<p>{{x.label}}, {{x.value}}</p>
+			{% if x.section != "" %}
+			<h1>{{x.section}}</h1><br>
+			{% endif %}
+			<p>{{x.label}}, {{"{:,}".format(x.value)}}</p><br>
 		{% endfor %}
-	{% else %}
-		<p>Enter a stock to research</p>
+	</div>
 	{% endif %}	
 {% endblock %}

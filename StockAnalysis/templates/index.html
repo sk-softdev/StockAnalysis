@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Stockie | Home Page{% endblock %}
 {% block content %}
-	<h1>Stocks Overview</h1>
+	<h1>Stocks Overview (Updated {{today}})</h1>
 		<div class="panel-body" style="background-color: gray; width: 800px; height: 550px; border-radius:10px;">
 		<table class="table">
 		  <thead>
@@ -39,7 +39,7 @@
 		    			<tr>
 		    				<td style="color: darkgreen;">{% print(marketWinners[x].ticker) %}, {% print(marketWinners[x].change) %}%</td>
 		    				<td style="color: darkred;">{% print(marketLosers[x].ticker) %}, {% print(marketLosers[x].change) %}%</td>
-		    				<td style="color: gold;">{% print(marketPopular[x].ticker) %}, {% print(marketPopular[x].volume) %}</td>
+		    				<td style="color: gold;">{% print(marketPopular[x].ticker) %}, {% print("{:,}".format(marketPopular[x].volume)) %}</td>
 						</tr>
 					{% endfor %}	
 	  		{% endif %}	
@@ -48,7 +48,7 @@
 		</div>
 		<br>
 	{% if g.user %}
-	<h1>Your Stocks</h1>
+	<h1>Your Stocks (Updated for Previous Close)</h1>
 		<div id="stockTbl" class="panel-body" style="background-color: gray; width: 800px; height: 50px; border-radius:10px;">
 		<table class="table" id="tblBody">
 		  <thead>
@@ -67,9 +67,9 @@
 			  	<tbody>
 				  	<script>var tickers = "";</script>
 	    		{% for row in userStats %}
-			  		<tr id="newTicker">
-			  			<td>
-				  			<div style="display: flex; justify-content: space-between; margin: auto;">
+					<tr id="newTicker">
+						<td>
+							<div style="display: flex; justify-content: space-between; margin: auto;">
 								<p style="position: relative; left: 7px">{{row.ticker}}</p>
 								<img src="{{row.logo}}" style="width: 45px; height: 45px; position: relative; left: 10px; top: -2px;">
 							</div>
@@ -86,11 +86,11 @@
 							<input id="deleteButton" class="stockEdit" value="Delete" type="submit"></input>
 						</td>
 					</tr>	
-		  			<script>
-		  				document.getElementById("stockTbl").style.height = {{tableHeight}} + "px";		
-			  			document.getElementById("newTicker").id = {{row.tickerID}};	
-		  				document.getElementById("deleteButton").id = {{row.buttonID}};
-			  			document.getElementById('editButton').onclick = function() {
+					<script>
+						document.getElementById("stockTbl").style.height = {{tableHeight}} + "px";		
+						document.getElementById("newTicker").id = {{row.tickerID}};	
+						document.getElementById("deleteButton").id = {{row.buttonID}};
+						document.getElementById('editButton').onclick = function() {
 							if (document.getElementById('editButton').value == "Edit") {
 								document.getElementById('editButton').value = "Finish Editing";
 								document.documentElement.style.setProperty('--visibility', 'block');
@@ -106,7 +106,7 @@
 							document.getElementById({{row.tickerID}}).remove(); // Removes JavaScript element
 							tickers = tickers + "{{row.ticker}}" + ",";
 						};					
-		  			</script>
+					</script>
 	  			{% endfor %}
 	  		{% else %}
 	  			<p style="position: relative; top: 9px; left: 15px;">You're currently tracking no stocks. Press the plus button to make additions.</p>
@@ -136,11 +136,13 @@
 			  </thead>
 			  <tbody>
 	    		{% for row in userStats %}
-			  		<tr>
-			  			<td>{{row.newsTitle}}</td>
-						<td>{{row.newsPublisher}}</td>
-						<td>{{row.newsDate}}</td>
-					</tr>	
+					{% if row.username == g.user['username'] %}
+						<tr>
+							<td><a href="{{row.newsURL}}" style="color: darkblue">{{row.newsTitle}}</a></td>
+							<td>{{row.newsPublisher}}</td>
+							<td>{{row.newsDate}}</td>
+						</tr>
+					{% endif %}		
 	  			{% endfor %}
 	  		{% else %}
 	  			<p style="position: relative; top: 9px; left: 15px;">No stocks to give news on. Please add stocks above.</p>
@@ -151,6 +153,7 @@
 		  </tbody>
 		</table>
 		</div>
+		<br>
 	<script> 
 		document.getElementById('addButton').onclick = function() {
 			document.getElementById('tckrEntry').style.display = "block";

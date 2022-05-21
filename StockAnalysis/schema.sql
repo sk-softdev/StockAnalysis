@@ -17,6 +17,7 @@ CREATE TABLE marketStats (
 );
 
 CREATE TABLE userStats (
+  username TEXT NOT NULL,
   name TEXT NOT NULL,
   ticker TEXT NOT NULL,
   logo TEXT NOT NULL,
@@ -27,10 +28,12 @@ CREATE TABLE userStats (
   volume INTEGER NOT NULL,
   newsTitle TEXT NOT NULL,
   newsPublisher TEXT NOT NULL,
-  newsDate TEXT NOT NULL
+  newsDate TEXT NOT NULL,
+  newsURL TEXT NOT NULL
 );
 
 CREATE TABLE researchStats (
   label TEXT NOT NULL,
-  value FLOAT NOT NULL
+  value FLOAT NOT NULL,
+  section TEXT NOT NULL
 );
