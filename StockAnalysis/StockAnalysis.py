@@ -158,11 +158,10 @@ def setStockData(ticker):
     return stockData
 
 def addStock(ticker, today, stored):
+    stockData = setStockData(ticker)
     session['noStocksAfterCreation'] = False
     session['tableHeight'] = session.get("tableHeight") + 75
     session['newsHeight'] = session.get("newsHeight") + 75
-    
-    stockData = setStockData(ticker)
 
     db = get_db()
     db.execute(

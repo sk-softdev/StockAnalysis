@@ -104,11 +104,11 @@
 						};	
 						document.getElementById({{row.buttonID}}).onclick = function() {
 							document.getElementById({{row.tickerID}}).remove(); // Removes JavaScript element
-							if (tickers.split(",").length === 1)
+							if (tickers.split(",").length === 1 && tickers === "")
 								tickers = "{{row.ticker}}";
 							else
-								tickers = tickers + "{{row.ticker}}" + ",";
-						};					
+								tickers = tickers + "," + "{{row.ticker}}";
+						};				
 					</script>
 	  			{% endfor %}
 	  		{% else %}
