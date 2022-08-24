@@ -104,7 +104,10 @@
 						};	
 						document.getElementById({{row.buttonID}}).onclick = function() {
 							document.getElementById({{row.tickerID}}).remove(); // Removes JavaScript element
-							tickers = tickers + "{{row.ticker}}" + ",";
+							if (tickers.split(",").length === 1)
+								tickers = "{{row.ticker}}";
+							else
+								tickers = tickers + "{{row.ticker}}" + ",";
 						};					
 					</script>
 	  			{% endfor %}
