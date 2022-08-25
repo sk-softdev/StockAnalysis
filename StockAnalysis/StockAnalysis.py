@@ -14,8 +14,6 @@ def home():
     if 'dataCreated' not in session:
         session['dataCreated'] = False
         session['userDataCreated'] = False
-        session['tableHeight'] = 50
-        session['newsHeight'] = 50
         session['userFilter'] = ""
         session['noStocksAfterCreation'] = True
 
@@ -90,8 +88,6 @@ def home():
             session['userDataCreated'] = True
             if g.user['stocks'] != None:
                 session['noStocksAfterCreation'] = False
-                session['tableHeight'] = g.user['stocks'].split(",").length * 75
-                session['newsHeight'] = g.user['stocks'].split(",").length * 75
 
         # logs login date to avoid excessive data updates
         db = get_db()
@@ -124,7 +120,7 @@ def home():
     else:
         userStats = None
 
-    return render_template("index.html", dataCreated=session.get("dataCreated"), userDataCreated=session.get("userDataCreated"), tableHeight=session.get("tableHeight"), newsHeight=session.get("newsHeight"), marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats, noStocksAfterCreation=session.get("noStocksAfterCreation"), today=today)
+    return render_template("index.html", dataCreated=session.get("dataCreated"), userDataCreated=session.get("userDataCreated"), marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats, noStocksAfterCreation=session.get("noStocksAfterCreation"), today=today)
 
 def setStockData(ticker):
     key = 'placeholder'
@@ -160,8 +156,6 @@ def setStockData(ticker):
 def addStock(ticker, today, stored):
     stockData = setStockData(ticker)
     session['noStocksAfterCreation'] = False
-    session['tableHeight'] = session.get("tableHeight") + 75
-    session['newsHeight'] = session.get("newsHeight") + 75
 
     db = get_db()
     db.execute(
@@ -241,8 +235,6 @@ def delete(tickers):
     # Iterates backwards to avoid out of index errors when removing.
 
     for y in tickersList:
-        session['tableHeight'] = session['tableHeight'] - 75
-        session['newsHeight'] = session['newsHeight'] - 75
         db.execute("DELETE FROM userStats WHERE ticker = ?", (y,))
         db.commit()
 

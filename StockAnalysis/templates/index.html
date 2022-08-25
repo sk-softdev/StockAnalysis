@@ -49,7 +49,7 @@
 		<br>
 	{% if g.user %}
 	<h1>Your Stocks (Updated for Previous Close)</h1>
-		<div id="stockTbl" class="panel-body" style="background-color: gray; width: 800px; height: 50px; border-radius:10px;">
+		<div id="stockTbl" class="panel-body" style="background-color: gray; border-radius:10px; width: 800px;">
 		<table class="table" id="tblBody">
 		  <thead>
 	    	{% if userDataCreated and noStocksAfterCreation == False %}
@@ -86,8 +86,7 @@
 							<input id="deleteButton" class="stockEdit" value="Delete" type="submit"></input>
 						</td>
 					</tr>	
-					<script>
-						document.getElementById("stockTbl").style.height = {{tableHeight}} + "px";		
+					<script>	
 						document.getElementById("newTicker").id = {{row.tickerID}};	
 						document.getElementById("deleteButton").id = {{row.buttonID}};
 						document.getElementById('editButton').onclick = function() {
@@ -116,18 +115,18 @@
   			{% endif %}	
 		  </tbody>
 		</table>
+		</div>
 		<button id="addButton" style="position: relative; left: 735px; top: -14px;"><img src="static/add_button.png" style="height: 40px; width: auto;"></button>
 		<form id="tckrEntry" action="{{url_for('home')}}" method="post" style="position: relative; left: 500px; display: none;">
 			<label for="ticker">Ticker:</label>
 			<input type="text" id="ticker" name="tckr" placeholder="ticker">
 			<button name="action" value="Add" id="submitButton" type="submit">Add</button>
 		</form>
-		</div>
 		<br>
 		<br>
 		<br>
 		<h1>Your News</h1>	
-		<div class="panel-body" id="newsTbl" style="background-color: gray; width: 800px; height: 200px; border-radius:10px;">
+		<div class="panel-body" id="newsTbl" style="background-color: gray; border-radius:10px; width: 800px;">
 		<table class="table">
 		  <thead>
 	    	{% if userDataCreated and noStocksAfterCreation == False %}
@@ -150,9 +149,6 @@
 	  		{% else %}
 	  			<p style="position: relative; top: 9px; left: 15px;">No stocks to give news on. Please add stocks above.</p>
   			{% endif %}	
-  			<script>
-		  		document.getElementById("newsTbl").style.height = {{newsHeight}} + "px"	
-		  	</script>
 		  </tbody>
 		</table>
 		</div>
