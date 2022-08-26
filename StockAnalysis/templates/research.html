@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Stockie | Research Page{% endblock %}
 {% block content %}
-	<form id="tckrEntry" action="{{url_for('StockAnalysis.research')}}" method="post" style="position: relative; top: -25px; left: 0px;">
+	<form id="tckrEntry" action="{{url_for('StockAnalysis.research')}}" method="post" style="text-align: center;">
 		<label for="ticker">Pick Ticker to research:</label>
 		<input type="text" id="ticker" name="tckr" placeholder="Ticker">
 		<button name="action" value="Add" id="submitButton" type="submit">Add</button>
@@ -16,5 +16,5 @@
 			<p>{{x[0]}}, {{"{:,}".format(x[1])}}</p><br>
 		{% endfor %}
 	</div>
-	{% endif %}	
+	{% endif %}
 {% endblock %}

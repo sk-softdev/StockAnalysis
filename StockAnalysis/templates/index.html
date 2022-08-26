@@ -1,36 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Stockie | Home Page{% endblock %}
 {% block content %}
-	<h1>Stocks Overview (Updated {{today}})</h1>
-		<div class="panel-body" style="background-color: gray; border-radius:10px;">
-		<table class="table">
+	<p style="font-size: 2.5rem;">Stocks Overview (Updated {{today}})</p>
+		<div class="panel-body" style="background-color: gray; font-size: 1rem; border-radius:10px;">
+		<table class="table" style="table-layout: fixed;">
 		  <thead>
 		    <tr>
 		      <th scope="col">Top Gainers</th>
 		      <th scope="col">Top Losers</th>
-		      <th scope="col">Most Traded (by volume)</th>
 		      <th scope="col">
-		      	<div style="position: relative; top: -25px;height: 0px;margin:0 auto; padding: 10px">
-			      	<div class="container-fluid">
-				      	<div class="dropdown">
-					      	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-					      		Filter <div class="caret"></div>
-					      	</button>
-					      	<ul class="dropdown-menu">
-					      		<li><a href="/filter/8">All</a></li>
-					      		<li><a href="/filter/7"><100 million shares traded</a></li>
-					      		<li><a href="/filter/6"><50 million shares traded</a></li>
-					      		<li><a href="/filter/5"><25 million shares traded</a></li>
-					      		<li><a href="/filter/4"><10 million shares traded</a></li>
-					      		<li><a href="/filter/3"><5 million shares traded</a></li>
-					      		<li><a href="/filter/2"><1 million shares traded</a></li>
-					      		<li><a href="/filter/1"><500k shares traded</a></li>
-					      		<li><a href="/filter/0"><100k shares traded</a></li>
-					      	</ul>
-				      	</div>
-			      	</div>
-		      	</div>
-		      </th>
+					<div style="position: relative; top: -25px;height: 0px; display:flex">
+					    <p>Volume</p>
+						<div class="container-fluid">
+							<div class="dropdown">
+								<button type="button" style="position: relative; top: -15px;" class="btn btn-default dropdown-toggle filter" data-toggle="dropdown">
+									Filter <div class="caret"></div>
+								</button>
+								<ul class="dropdown-menu">
+									<li><a href="/filter/8">All</a></li>
+									<li><a href="/filter/7"><100 million shares traded</a></li>
+									<li><a href="/filter/6"><50 million shares traded</a></li>
+									<li><a href="/filter/5"><25 million shares traded</a></li>
+									<li><a href="/filter/4"><10 million shares traded</a></li>
+									<li><a href="/filter/3"><5 million shares traded</a></li>
+									<li><a href="/filter/2"><1 million shares traded</a></li>
+									<li><a href="/filter/1"><500k shares traded</a></li>
+									<li><a href="/filter/0"><100k shares traded</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</th>
 		    </tr>
 		  </thead>
 		  <tbody>
@@ -41,24 +41,24 @@
 		    				<td style="color: darkred;">{% print(marketLosers[x].ticker) %}, {% print(marketLosers[x].change) %}%</td>
 		    				<td style="color: gold;">{% print(marketPopular[x].ticker) %}, {% print("{:,}".format(marketPopular[x].volume)) %}</td>
 						</tr>
-					{% endfor %}	
-	  		{% endif %}	
+					{% endfor %}
+	  		{% endif %}
 		  </tbody>
 		</table>
 		</div>
 		<br>
 	{% if g.user %}
-	<h1>Your Stocks (Updated for Previous Close)</h1>
+	<p style="font-size: 2.5rem;">Your Stocks (Updated for Previous Close)</p>
 		<div id="stockTbl" class="panel-body" style="background-color: gray; border-radius:10px;">
-		<table class="table" id="tblBody">
+		<table class="table" id="tblBody" style="table-layout: fixed;">
 		  <thead>
 	    	{% if userDataCreated and noStocksAfterCreation == False %}
 	    		<tr>
 			      <th scope="col">Symbol</th>
-			      <th scope="col">Company Name</th>
-			      <th scope="col">Share Price</th>
-			      <th scope="col">Gain/Loss Percentage (24h)</th>
-			      <th scope="col">Daily Volume</th>
+			      <th scope="col" class="extraData">Company Name</th>
+			      <th scope="col">Price</th>
+			      <th scope="col">G/L (24h)</th>
+			      <th scope="col" class="extraData">Daily Volume</th>
 			      <th scope="col">
 			      	<input value="Edit" id="editButton" type="submit"></input>
 			  	  </th>
@@ -74,24 +74,24 @@
 								<img src="{{row.logo}}" style="width: 45px; height: 45px; position: relative; left: 10px; top: -2px;">
 							</div>
 						</td>
-						<td>{{row.name}}</td>
+						<td class="extraData">{{row.name}}</td>
 						<td>{{row.stockPrice}}</td>
 						{% if row.priceChange > 0 %}
 							<td style="color: darkgreen;">+{{row.priceChange}}%</td>
 						{% else %}
 							<td style="color: darkred">{{row.priceChange}}%</td>
 						{% endif %}
-						<td>{{row.volume}}</td>
+						<td class="extraData">{{row.volume}}</td>
 						<td>
 							<input id="deleteButton" class="stockEdit" value="Delete" type="submit"></input>
 						</td>
-					</tr>	
-					<script>	
-						document.getElementById("newTicker").id = {{row.tickerID}};	
+					</tr>
+					<script>
+						document.getElementById("newTicker").id = {{row.tickerID}};
 						document.getElementById("deleteButton").id = {{row.buttonID}};
 						document.getElementById('editButton').onclick = function() {
 							if (document.getElementById('editButton').value == "Edit") {
-								document.getElementById('editButton').value = "Finish Editing";
+								document.getElementById('editButton').value = "Finish";
 								document.documentElement.style.setProperty('--visibility', 'block');
 							}
 							else {
@@ -100,24 +100,24 @@
 								tickers = "";
 								document.documentElement.style.setProperty('--visibility', 'none');
 							}
-						};	
+						};
 						document.getElementById({{row.buttonID}}).onclick = function() {
 							document.getElementById({{row.tickerID}}).remove(); // Removes JavaScript element
 							if (tickers.split(",").length === 1 && tickers === "")
 								tickers = "{{row.ticker}}";
 							else
 								tickers = tickers + "," + "{{row.ticker}}";
-						};				
+						};
 					</script>
 	  			{% endfor %}
 	  		{% else %}
 	  			<p style="position: relative; top: 9px; left: 15px;">You're currently tracking no stocks. Press the plus button to make additions.</p>
-  			{% endif %}	
+  			{% endif %}
 		  </tbody>
 		</table>
 		</div>
-		<button id="addButton" style="position: relative; left: 735px; top: -14px;"><img src="static/add_button.png" style="height: 40px; width: auto;"></button>
-		<form id="tckrEntry" action="{{url_for('home')}}" method="post" style="position: relative; left: 500px; display: none;">
+		<button id="addButton"><img src="static/add_button.png" style="height: 40px; width: auto;"></button>
+		<form id="tckrEntry" action="{{url_for('home')}}" method="post" style="position: relative; top: 15px; display: none;">
 			<label for="ticker">Ticker:</label>
 			<input type="text" id="ticker" name="tckr" placeholder="ticker">
 			<button name="action" value="Add" id="submitButton" type="submit">Add</button>
@@ -125,9 +125,9 @@
 		<br>
 		<br>
 		<br>
-		<h1>Your News</h1>	
+		<p style="font-size: 2.5rem;">Your News</p>
 		<div class="panel-body" id="newsTbl" style="background-color: gray; border-radius:10px;">
-		<table class="table">
+		<table class="table" style="table-layout: fixed;">
 		  <thead>
 	    	{% if userDataCreated and noStocksAfterCreation == False %}
 			    <tr>
@@ -144,16 +144,16 @@
 							<td>{{row.newsPublisher}}</td>
 							<td>{{row.newsDate}}</td>
 						</tr>
-					{% endif %}		
+					{% endif %}
 	  			{% endfor %}
 	  		{% else %}
 	  			<p style="position: relative; top: 9px; left: 15px;">No stocks to give news on. Please add stocks above.</p>
-  			{% endif %}	
+  			{% endif %}
 		  </tbody>
 		</table>
 		</div>
 		<br>
-	<script> 
+	<script>
 		document.getElementById('addButton').onclick = function() {
 			document.getElementById('tckrEntry').style.display = "block";
 		};

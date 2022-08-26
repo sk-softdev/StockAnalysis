@@ -18,7 +18,7 @@ def home():
         session['noStocksAfterCreation'] = True
 
     # determines the day and adjusts to be a weekday
-    # polygon api doesn't allow data of the current day to be accessed for free (assuming it's a business day), so the day must be set back by one
+    # polygon api doesn't allow data of the current day to be accessed for free (assuming it's a business day), so the day must be set back by one then
     if datetime.today().weekday() - 1 < 0:
         today = date.today() - timedelta(days = 3)
     elif datetime.today().weekday() - 1 < 5:
@@ -28,7 +28,7 @@ def home():
 
     currentYear = str(date.today().year)
     holidays = [currentYear + "-01-17", currentYear + "-02-21", currentYear + "-04-15", currentYear + "-05-30", currentYear + "-06-20", currentYear + "-07-04", currentYear + "-09-05", currentYear + "-11-24", currentYear + "-12-26"]
-    
+
     # ensures the day isn't a holiday as the market wouldn't of been open
     if str(today) in holidays:
         today = today - timedelta(days = 1)
@@ -91,7 +91,7 @@ def home():
 
         # logs login date to avoid excessive data updates
         db = get_db()
-        db.execute("UPDATE user SET lastLogin = ? WHERE id = ?", (today, g.user['id']))
+        db.execute("UPDATE user SET lastLogin = ? WHERE username = ?", (today, g.user['username']))
         db.commit()
 
     # initial market data creation
@@ -99,7 +99,7 @@ def home():
         try:
             db = get_db()
             # checks if market data has already been created
-            dateUpdated = db.execute("SELECT dateUpdated FROM marketStats").fetchone()           
+            dateUpdated = db.execute("SELECT dateUpdated FROM marketStats").fetchone()
             if dateUpdated != today:
                 dataCreate(today)
 
@@ -114,7 +114,7 @@ def home():
     marketLosers = db.execute("SELECT * FROM marketStats " + session.get("userFilter") + " ORDER BY change LIMIT 10").fetchall()
     marketPopular = db.execute("SELECT * FROM marketStats " + session.get("userFilter") + " ORDER BY volume DESC LIMIT 10").fetchall()
 
-    # retrieves user data, if a user is logged in 
+    # retrieves user data, if a user is logged in
     if g.user != None:
         userStats = db.execute("SELECT * FROM userStats WHERE username = ?", (g.user['username'],)).fetchall()
     else:
@@ -140,7 +140,7 @@ def setStockData(ticker):
     newsTitle = data['results'][1]['title']
     newsPublisher = data['results'][0]['publisher']['name']
     newsDate = data['results'][3]['published_utc']
-    
+
     # cuts news date to just include the date
     for x in newsDate:
         if x == "T":
@@ -170,7 +170,7 @@ def addStock(ticker, today, stored):
             db.execute("UPDATE user SET stocks = ? WHERE id = ?", (ticker, g.user['id']))
         else: # update after initial creation
             db.execute("UPDATE user SET stocks = ? WHERE id = ?", (g.user['stocks'] + "," + ticker, g.user['id']))
-    
+
     db.commit()
 
     return
@@ -247,7 +247,7 @@ def delete(tickers):
             if userTickers[i] == tickersList[j]:
                 del userTickers[i]
                 break
-    
+
     # recreates user's stocks after stock has been removed
     stocksString = ""
     for x in userTickers:
@@ -266,7 +266,7 @@ def delete(tickers):
 
     return redirect("/")
 
-# Iterates through financials of desired company to research and stores them 
+# Iterates through financials of desired company to research and stores them
 @bp.route("/research", methods=['GET', 'POST'])
 def research():
     if request.method == 'POST':
@@ -280,7 +280,7 @@ def research():
             for x in researchData:
                 # stores section title stored in second index. ex: "Comprehensive Income"
                 section = x[1]
-                
+
                 # iterates through data stored in first index
                 for y in x[0]:
                     researchArr.append([x[0][y]['label'], x[0][y]['value'], section])
@@ -288,7 +288,7 @@ def research():
         except:
             flash("Oops!" + str(sys.exc_info()[0]) + "occurred.")
             flash("Please wait 5 minutes then refresh. The API calls are limited.")
-        
+
         return render_template("research.html", researchArr=researchArr, ticker=ticker)
 
     return render_template("research.html")

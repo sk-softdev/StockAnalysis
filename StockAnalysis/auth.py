@@ -110,8 +110,4 @@ def login():
 @bp.route("/logout")
 def logout():
     session.clear()
-    db = get_db()
-    db.execute("DELETE FROM userStats")
-    db.commit()
     return redirect(url_for("home"))
-
