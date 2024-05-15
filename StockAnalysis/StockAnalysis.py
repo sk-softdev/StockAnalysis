@@ -123,7 +123,7 @@ def home():
     return render_template("index.html", dataCreated=session.get("dataCreated"), userDataCreated=session.get("userDataCreated"), marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats, noStocksAfterCreation=session.get("noStocksAfterCreation"), today=today)
 
 def setStockData(ticker):
-    key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
+    key = 'placeholder'
     req = requests.get("https://api.polygon.io/v1/meta/symbols/" + ticker + "/company?apiKey=" + key)
     data = json.loads(req.content)
     name = data['name']
@@ -180,7 +180,7 @@ def dataCreate(today):
     db = get_db()
     db.execute("DELETE FROM marketStats")
     db.execute("INSERT INTO marketStats (dateUpdated, change) VALUES (?, ?)", (today, 0))
-    key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
+    key = 'placeholder'
     req = requests.get("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/" + str(today) + "?adjusted=true&apiKey=" + key)
     data = json.loads(req.content)
     for x in data['results']:
