@@ -123,11 +123,12 @@ def home():
     return render_template("index.html", dataCreated=session.get("dataCreated"), userDataCreated=session.get("userDataCreated"), marketWinners=marketWinners, marketLosers=marketLosers, marketPopular=marketPopular, userStats=userStats, noStocksAfterCreation=session.get("noStocksAfterCreation"), today=today)
 
 def setStockData(ticker):
-    key = 'placeholder'
+    key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
     req = requests.get("https://api.polygon.io/v1/meta/symbols/" + ticker + "/company?apiKey=" + key)
     data = json.loads(req.content)
     name = data['name']
     logo = data['logo']
+    description = data['description']
     tickerID = random.randint(100000,1000000)
     buttonID = random.randint(100000,1000000)
     req = requests.get("https://api.polygon.io/v2/aggs/ticker/" + ticker + "/prev?adjusted=true&apiKey=" + key)
@@ -149,7 +150,7 @@ def setStockData(ticker):
 
     newsURL = data['results'][4]['article_url']
 
-    stockData = [name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate, newsURL]
+    stockData = [name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate, newsURL, description]
 
     return stockData
 
@@ -159,8 +160,8 @@ def addStock(ticker, today, stored):
 
     db = get_db()
     db.execute(
-        "INSERT INTO userStats (username, name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate, newsURL) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (g.user['username'], stockData[0], stockData[1], stockData[2], stockData[3], stockData[4], stockData[5], stockData[6], stockData[7], stockData[8], stockData[9], stockData[10], stockData[11]),
+        "INSERT INTO userStats (username, name, ticker, logo, tickerID, buttonID, stockPrice, priceChange, volume, newsTitle, newsPublisher, newsDate, newsURL, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (g.user['username'], stockData[0], stockData[1], stockData[2], stockData[3], stockData[4], stockData[5], stockData[6], stockData[7], stockData[8], stockData[9], stockData[10], stockData[11], stockData[12]),
     )
 
     # updates user's stocks in db, if not retrieving previously stored stocks
@@ -179,16 +180,12 @@ def dataCreate(today):
     db = get_db()
     db.execute("DELETE FROM marketStats")
     db.execute("INSERT INTO marketStats (dateUpdated, change) VALUES (?, ?)", (today, 0))
-    key = 'placeholder'
+    key = 'XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW'
     req = requests.get("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/" + str(today) + "?adjusted=true&apiKey=" + key)
     data = json.loads(req.content)
     for x in data['results']:
         if len(x['T']) < 5: # excludes warrants/issues etc
-            db.execute(
-                "INSERT INTO marketStats (ticker, volume, change) VALUES (?, ?, ?)",
-                (x['T'], x['v'], round(((x['c'] - x['o']) / x['o']) * 100, 2)),
-            )
-
+            db.execute("INSERT INTO marketStats (ticker, volume, change) VALUES (?, ?, ?)", (x['T'], x['v'], round(((x['c'] - x['o']) / x['o']) * 100, 2)))
     db.commit()
     return
 
@@ -273,7 +270,7 @@ def research():
         ticker = request.form.get('tckr')
         researchArr = []
         try:
-            req = requests.get("https://api.polygon.io/vX/reference/financials?ticker=" + ticker + "&apiKey=placeholder")
+            req = requests.get("https://api.polygon.io/vX/reference/financials?ticker=" + ticker + "&apiKey=XoIHGXzAz89flV3zUjNGpOEf9zJ0iidW")
             data = json.loads(req.content)
             researchData = [[data['results'][0]['financials']['comprehensive_income'], "Comprehensive Income"], [data['results'][0]['financials']['income_statement'], "Income Statement"], [data['results'][0]['financials']['balance_sheet'], "Balance Sheet"], [data['results'][0]['financials']['cash_flow_statement'], "Cash Flow Statement"]]
 
