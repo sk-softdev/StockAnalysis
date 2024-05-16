@@ -30,5 +30,6 @@ CREATE TABLE userStats (
   newsTitle TEXT NOT NULL,
   newsPublisher TEXT NOT NULL,
   newsDate TEXT NOT NULL,
-  newsURL TEXT NOT NULL
+  newsURL TEXT NOT NULL,
+  description TEXT NOT NULL
 );
